@@ -13,7 +13,7 @@ def sign(username, password, flag):
     if str(response['code'])[0] == '3':
         for i in range(3):
             time.sleep(5)
-            response = mydgut.attendance(flag=1)
+            response = mydgut.attendance(flag=flag)
             if response['code'] == 1:
                 break
     return response

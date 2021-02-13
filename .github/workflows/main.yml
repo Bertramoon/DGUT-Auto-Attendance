@@ -2,11 +2,8 @@ name: 学生助理考勤
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
   schedule:
-    - cron: '0/3 * * * *'
+    - cron: '30 0 * * *'
   watch:
     types: started
 

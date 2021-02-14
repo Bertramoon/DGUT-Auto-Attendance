@@ -1,11 +1,8 @@
 name: 学生助理考勤
 
 on:
-  push:
   schedule:
-    - cron: '30 0,6 * * *'
-  watch:
-    types: started
+    - cron: '0 16 * * *'
 
 jobs:
   attendance:
@@ -20,4 +17,4 @@ jobs:
       - name: Install requirements
         run: pip install -r requirements.txt
       - name: Attendance
-        run: python attendance.py ${{ secrets.USERNAME }} ${{ secrets.PASSWORD }} ${{ secrets.ATTENDANCE_TIME }}
+        run: python attendance.py ${{ secrets.USERNAME }} ${{ secrets.PASSWORD }}

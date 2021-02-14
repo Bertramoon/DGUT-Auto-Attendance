@@ -1,8 +1,11 @@
 name: 学生助理考勤
 
 on:
+  push:
+    branches:
+      - main
   schedule:
-    - cron: '0 22 * * *'
+    - cron: '0 16 * * *'
 
 jobs:
   attendance:

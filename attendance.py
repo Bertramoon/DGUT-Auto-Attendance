@@ -48,6 +48,9 @@ if __name__ == '__main__':
 
     # 验证账号密码和登录时间
     try:
+        
+        run_time = datetime.datetime.utcnow()+datetime.timedelta(hours=8)
+
         username = sys.argv[1]
         password = sys.argv[2]
 
@@ -62,6 +65,10 @@ if __name__ == '__main__':
             if now.hour > int(start[0]) or (now.hour == int(start[0]) and now.minute > int(start[1])):
                 continue
             
+            if int(end[0])-run_time.hour > 6 or (int(end[0])-run_time.hour == 6 and int(end[1]) > run_time.minute):
+                print("计算得程序运行总时长超过6小时，程序自动终止运行")
+                break
+
             while True:
                 if now.hour == int(start[0]) and now.minute == int(start[1]):
                     break

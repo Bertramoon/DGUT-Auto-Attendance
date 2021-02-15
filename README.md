@@ -138,7 +138,7 @@
 主程序
 - README.md:
 项目说明
-- requests.txt:
+- requirements.txt:
 运行程序所需的python第三方库及使用版本
 - schedule.json:
 考勤时间配置文件

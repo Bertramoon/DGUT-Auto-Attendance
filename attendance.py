@@ -56,11 +56,11 @@ if __name__ == '__main__':
 
         schedule = get_schedule(filename='./schedule.json')
         if len(schedule):
-            print("今天的考勤时间为：", end='')
+            print("今天的考勤时间为：")
             for item in schedule:
-                print(f"{item[0]}-{item[1]}\t")
+                print(f"{item[0]}-{item[1]}")
         else:
-            prinit("今天无需考勤")
+            print("今天无需考勤")
         
         for atten in schedule:
             start = atten[0].split(":")

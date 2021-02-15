@@ -55,7 +55,13 @@ if __name__ == '__main__':
         password = sys.argv[2]
 
         schedule = get_schedule(filename='./schedule.json')
-        print(schedule)
+        if len(schedule):
+            print("今天的考勤时间为：", end='')
+            for item in schedule:
+                print(f"{item[0]}-{item[1]}\t")
+        else:
+            prinit("今天无需考勤")
+        
         for atten in schedule:
             start = atten[0].split(":")
             end = atten[1].split(":")
@@ -66,8 +72,8 @@ if __name__ == '__main__':
                 continue
             
             if int(end[0])-run_time.hour > 6 or (int(end[0])-run_time.hour == 6 and int(end[1]) > run_time.minute):
-                print("计算得程序运行总时长超过6小时，程序自动终止运行")
-                break
+                print("计算得到该程序运行总时长将超过6小时，程序自动终止运行")
+                exit()
 
             while True:
                 if now.hour == int(start[0]) and now.minute == int(start[1]):

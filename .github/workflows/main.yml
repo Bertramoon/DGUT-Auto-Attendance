@@ -2,7 +2,7 @@ name: 学生助理考勤
 
 on:
   schedule:
-    - cron: '0 0,6 * * *'
+    - cron: '30 5,23 * * *'
 
 jobs:
   attendance:

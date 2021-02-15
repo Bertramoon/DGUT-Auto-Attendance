@@ -57,6 +57,8 @@
 >**设置考勤时间不需要编辑python代码，仅需要编辑schedule.json文件**  
 >&emsp;&emsp;在schedule.json文件中，"0"-"6"表示星期日-星期六（每周的第一天是星期日），其映射的列表表示考勤时间  
 >&emsp;&emsp;考勤时间列表的每一个元素亦是一个列表，代表一次考勤的开始时间和结束时间，下面这个例子能让你更加清楚如何制定自己的考勤时间表  
+>>Tips:
+不要更改schedule.json的文件结构，否则程序无法正常运行
 
 <br>
 
@@ -132,11 +134,25 @@
             __init__.py
             错误类型的说明.png
 
+- attendance.py:
+主程序
+- README.md:
+项目说明
+- requests.txt:
+运行程序所需的python第三方库及使用版本
+- schedule.json:
+考勤时间配置文件
+- .github/workflows/main.yml:
+YAML文件，创建github action的工作流workflows
+- dgut:
+作者编写的用于莞工账号模拟登录和相关系统进行爬虫操作的库
 
 # 5. 常见问题
 
 >待补充
 
+
+- 有技术方面的问题请联系作者email：3233406405@qq.com
 
 # 6. 参考资料
 - [莞工自动打卡&nbsp;&nbsp;Auto_Daily_Attendance-rebuild-](https://github.com/RanegadeHRH/Auto_Daily_Attendance-rebuild-/tree/ForWorkflow "莞工每日疫情打卡 - github仓库")

@@ -50,30 +50,31 @@ if __name__ == '__main__':
     try:
         
         run_time = datetime.datetime.utcnow()+datetime.timedelta(hours=8)
+        print(f"程序启动...\n当前时间 => {run_time.year}-{run_time.month}-{run_time.day} {run_time.hour}:{run_time.minute}:{run_time.second}")
 
         username = sys.argv[1]
         password = sys.argv[2]
 
         schedule = get_schedule(filename='./schedule.json')
         if len(schedule):
-            print("今天的考勤时间为：")
+            print("今天的考勤时间:", end='')
             for item in schedule:
-                print(f"{item[0]}-{item[1]}")
+                print(f" <{item[0]}-{item[1]}>", end='')
+            print()
         else:
-            print("今天无需考勤")
+            exit("今天无需考勤")
         
         for atten in schedule:
             start = atten[0].split(":")
             end = atten[1].split(":")
             print("-"*20)
-            print(f"{start[0]}:{start[1]}-{end[0]}:{end[1]}……")
+            print(f"{start[0]}:{start[1]}-{end[0]}:{end[1]}...")
             now = datetime.datetime.utcnow()+datetime.timedelta(hours=8)
             if now.hour > int(start[0]) or (now.hour == int(start[0]) and now.minute > int(start[1])):
                 continue
             
             if int(end[0])-run_time.hour > 6 or (int(end[0])-run_time.hour == 6 and int(end[1]) > run_time.minute):
-                print("计算得到该程序运行总时长将超过6小时，程序自动终止运行")
-                exit()
+                raise TimeoutError("计算得到该程序运行总时长将超过6小时，程序自动终止运行")
 
             while True:
                 if now.hour == int(start[0]) and now.minute == int(start[1]):
@@ -100,8 +101,11 @@ if __name__ == '__main__':
     except IndexError:
         print("请完整输入账号和密码")
     
+    except TimeoutError as e:
+        print(e)
+
     except:
-        print("未知的错误")
+        print("程序结束：可能是未知的错误")
 
     
     

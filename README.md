@@ -176,7 +176,7 @@ YAML文件，创建github action的工作流workflows
 
 
 <br><br>
-- 有技术方面的问题请联系作者email：3233406405@qq.com
+- 有需求或技术方面的问题请联系作者Email：3233406405@qq.com
 
 # 6. 参考资料
 - [莞工自动打卡&nbsp;&nbsp;Auto_Daily_Attendance-rebuild-](https://github.com/RanegadeHRH/Auto_Daily_Attendance-rebuild-/tree/ForWorkflow "莞工每日疫情打卡 - github仓库")

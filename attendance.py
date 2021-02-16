@@ -77,20 +77,21 @@ if __name__ == '__main__':
                 raise TimeoutError("计算得到该程序运行总时长将超过6小时，程序自动终止运行")
 
             while True:
+                now = datetime.datetime.utcnow()+datetime.timedelta(hours=8)
                 if now.hour == int(start[0]) and now.minute == int(start[1]):
                     break
-                now = datetime.datetime.utcnow()+datetime.timedelta(hours=8)
+            
             # 签到
             response1 = sign(username, password, 1)
             print(response1)
             if response1['code'] != 1:
                 print("启动自动考勤失败！")
                 exit()
-            now = datetime.datetime.utcnow()+datetime.timedelta(hours=8)
             while True:
-                if now.hour == int(end[0]) and now.minute == int(end[1]):
-                    break
                 now = datetime.datetime.utcnow()+datetime.timedelta(hours=8)
+                if now.hour == int(end[0]) and now.minute+1 == int(end[1]):
+                    break
+                
             # 签退
             response2 = sign(username, password, 2)
             print(response2)

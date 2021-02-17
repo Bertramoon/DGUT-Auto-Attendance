@@ -2,7 +2,7 @@ import requests
 import re
 import json
 
-class dgut_login(object):
+class DgutLogin(object):
     '''
     登录类
     '''
@@ -18,6 +18,7 @@ class dgut_login(object):
         self.session = requests.Session()
 
         '''
+        登录headers和url
         学工系统：xgxtt
         教务网络管理系统：jwyd
         '''
@@ -87,6 +88,10 @@ class dgut_login(object):
                 # 已登陆过，只需要获取认证
                 self.login[sys_name]['login_response'] = response
                 info = None
+                if re.match(r'.*?token.*?', response.url, re.S):
+                    info = response.url.strip()
+                if info:
+                    return {'message': '验证通过', 'code': 1, 'info': info}
                 for item in response.history:
                     if re.match(r'.*?token.*?', item.url, re.S):
                         info = item.url.strip()
@@ -105,20 +110,3 @@ class dgut_login(object):
             # 未知的错误
             return {'message': '未知的错误', 'code': 5}
         
-
-
-
-# 登录装饰器
-def decorator_signin(func):
-    '''
-    定义一个登录认证的装饰器
-    '''
-    def wrapper(self, *args, **kargs):
-        response = self.signin('xgxtt')
-        # 情况处理
-        # print("login message:", response)
-        if response['code'] == 1:
-            return func(self, *args, **kargs)
-        else:
-            return response
-    return wrapper

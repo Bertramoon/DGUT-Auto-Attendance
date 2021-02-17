@@ -1,15 +1,28 @@
-from .dgut_login import dgut_login, decorator_signin
+from .DgutLogin import DgutLogin
 import requests
 import re
 import lxml.etree
 import json
 import datetime
 
+# 登录装饰器
+def xgxtt_decorator_signin(func):
+    '''
+    定义一个登录学工系统的装饰器
+    '''
+    def wrapper(self, *args, **kargs):
+        response = self.signin('xgxtt')
+        # 情况处理
+        if response['code'] == 1:
+            return func(self, *args, **kargs)
+        else:
+            return response
+    return wrapper
 
 
-class dgut_xgxtt(dgut_login):
+class DgutXgxtt(DgutLogin):
     def __init__(self, username, password):
-        dgut_login.__init__(self, username, password)
+        DgutLogin.__init__(self, username, password)
         self.xgxtt = {
             'headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36',
@@ -26,7 +39,7 @@ class dgut_xgxtt(dgut_login):
 
     
 
-    
+    @xgxtt_decorator_signin
     def get_workAssignment(self):
         '''
         获取考勤职位信息
@@ -59,7 +72,7 @@ class dgut_xgxtt(dgut_login):
 
 
 
-    @decorator_signin
+    @xgxtt_decorator_signin
     def attendance(self, flag, workAssignmentId=None):
         '''
         学工系统考勤

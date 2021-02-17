@@ -1,8 +1,12 @@
-from dgut.dgut_xgxtt import dgut_xgxtt
+from Dgut.DgutXgxtt import DgutXgxtt
 import time
 import sys
 import datetime
 import json
+import configparser
+import chinese_calendar as calendar
+
+
 
 def get_schedule(filename='./schedule.json'):
     '''
@@ -17,7 +21,9 @@ def get_schedule(filename='./schedule.json'):
         now = datetime.datetime.utcnow()+datetime.timedelta(hours=8)
         week = now.strftime("%w")
         
-        schedule_today = schedule[week]
+        schedule_today = schedule.get(week)
+        if schedule_today == None:
+            return None
         schedule_today.sort(key=lambda elem: int(elem[0].split(':')[0]))
         return schedule_today
 
@@ -25,11 +31,13 @@ def get_schedule(filename='./schedule.json'):
         print(f'没找到文件{filename}')
 
 
-def sign(username, password, flag):
+def xgxtt_sign(username, password, flag, workAssignmentId=None):
     '''
-    考勤签到/签退
+    登录并考勤签到/签退
+    flag = 1 => 签到
+    flag = 2 => 签退
     '''
-    mydgut = dgut_xgxtt(username, password)
+    mydgut = DgutXgxtt(username, password)
 
     # 签到/签退
     response = mydgut.attendance(flag=flag)
@@ -44,17 +52,38 @@ def sign(username, password, flag):
     return response
 
 
+
 if __name__ == '__main__':
 
-    # 验证账号密码和登录时间
+    
     try:
+        demand = {
+            'holiday_attendance': False,
+            'workAssignmentId': None,
+        }
+
+        # 获取config.ini配置文件信息
+        config = configparser.ConfigParser()
+        config.read("./config.ini", encoding='utf-8')
+        attendance_demand = config.items('attendance')
+        for item in attendance_demand:
+            demand[item[0]] = item[1]
         
+        if isinstance(demand['holiday_attendance'], str):
+            demand['holiday_attendance'] = bool(demand['holiday_attendance'])
+        
+        if isinstance(demand['workAssignmentId'], str):
+            demand['workAssignmentId'] = int(demand['workAssignmentId'])
+
+
+        # 获取当前时间及是否为休息日
         run_time = datetime.datetime.utcnow()+datetime.timedelta(hours=8)
         print(f"程序启动...\n当前时间 => {run_time.year}-{run_time.month}-{run_time.day} {run_time.hour}:{run_time.minute}:{run_time.second}")
 
-        username = sys.argv[1]
-        password = sys.argv[2]
+        if calendar.is_holiday(run_time):
+            raise Exception("今天是休息日")
 
+        # 获取考勤时间，判断是否需要考勤
         schedule = get_schedule(filename='./schedule.json')
         if len(schedule):
             print("今天的考勤时间:", end='')
@@ -62,8 +91,13 @@ if __name__ == '__main__':
                 print(f" <{item[0]}-{item[1]}>", end='')
             print()
         else:
-            exit("今天无需考勤")
-        
+            raise Exception("今天没有考勤安排")
+
+
+        # 获取账号密码，验证账号密码格式
+        username = sys.argv[1]
+        password = sys.argv[2]
+
         for atten in schedule:
             start = atten[0].split(":")
             end = atten[1].split(":")
@@ -74,7 +108,7 @@ if __name__ == '__main__':
                 continue
             
             if int(end[0])-run_time.hour > 6 or (int(end[0])-run_time.hour == 6 and int(end[1]) > run_time.minute):
-                raise TimeoutError("计算得到该程序运行总时长将超过6小时，程序自动终止运行")
+                raise Exception("计算得到该程序运行总时长将超过6小时，程序自动终止运行")
 
             while True:
                 now = datetime.datetime.utcnow()+datetime.timedelta(hours=8)
@@ -82,7 +116,7 @@ if __name__ == '__main__':
                     break
             
             # 签到
-            response1 = sign(username, password, 1)
+            response1 = xgxtt_sign(username, password, 1, workAssignmentId=demand['workAssignmentId'])
             print(response1)
             if response1['code'] != 1:
                 print("启动自动考勤失败！")
@@ -93,7 +127,7 @@ if __name__ == '__main__':
                     break
                 
             # 签退
-            response2 = sign(username, password, 2)
+            response2 = xgxtt_sign(username, password, 2, workAssignmentId=demand['workAssignmentId'])
             print(response2)
             if response2['code'] != 1:
                 print("签到成功了但签退失败！")
@@ -102,7 +136,13 @@ if __name__ == '__main__':
     except IndexError:
         print("请完整输入账号和密码")
     
-    except TimeoutError as e:
+    except ValueError as e:
+        print(e)
+    
+    except configparser.NoSectionError:
+        print("缺少配置文件config.ini或缺少session [attendance]")
+
+    except Exception as e:
         print(e)
 
     except:

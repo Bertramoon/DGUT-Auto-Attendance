@@ -155,9 +155,10 @@ int类型，设置考勤职位的ID，当你有2个职位的时候可能会用�
     │  └─workflows
     │          main.yml
     │
-    ├─dgut
-    │      dgut_login.py
-    │      dgut_xgxtt.py
+    ├─Dgut
+    │      DgutLogin.py
+    │      DgutXgxtt.py
+    │      __init__.py
     │      错误类型的说明.png
     │
     └─img
@@ -174,7 +175,7 @@ int类型，设置考勤职位的ID，当你有2个职位的时候可能会用�
 考勤时间配置文件
 - .github/workflows/main.yml:
 YAML文件，创建github action的工作流workflows
-- dgut:
+- Dgut:
 作者编写的用于莞工账号模拟登录和相关系统进行爬虫操作的库
 - img:
 存放README.md所需的图片资源

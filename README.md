@@ -28,7 +28,7 @@
 
 东莞理工学院学工系统自动考勤
 
-![功能展示](h "")
+![功能展示](https://raw.githubusercontent.com/BertraMoon/Auto_Attendance/main/img/功能展示.png "")
 
 # 1.2. 使用技术
 - Python3.7

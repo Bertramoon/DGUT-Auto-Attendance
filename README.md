@@ -25,10 +25,7 @@
 # 1. 项目概述
 >[返回目录](#目录)
 # 1.1. 功能展示
-
-东莞理工学院学工系统自动考勤
-
-![功能展示](https://raw.githubusercontent.com/BertraMoon/Auto_Attendance/main/img/功能展示.png "")
+![功能展示](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Function%20display.png "")
 
 # 1.2. 使用技术
 - Python3.7
@@ -41,13 +38,18 @@
 >[返回目录](#目录)
 ## 2.1. fork仓库
 
-![fork仓库](h "")
+![fork仓库](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Fork%20repository.png "")
+
+<br>
+
 ## 2.2. 设置Secrets
+![点击Settings](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Click%20Settings.png "")
 
-点击 Settings => Secrets => New repository secret，添加所需要的repository secret
+<br>
 
-![点击Secrets](h "")
+![添加secrets](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Click%20Secrets.png "")
 
+<br>
 
 |需要添加的repository secret|含义|例|
 :-:|:-:|:-:
@@ -58,13 +60,19 @@
 
 **添加USERNAME**
 
-![添加USERNAME](h "")
+![添加USERNAME](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Add%20username.png "")
 
 <br>
 
 **添加PASSWORD**
 
-![添加PASSWORD](h "")
+![添加PASSWORD](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Add%20password.png "")
+
+<br>
+
+**添加成功**
+
+![添加secret成功](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Set%20secrets%20success.png "")
 
 
 ## 2.3. 设置考勤时间
@@ -73,11 +81,11 @@
 >&emsp;&emsp;在schedule.json文件中，"0"-"6"表示星期日-星期六（每周的第一天是星期日），其映射的列表表示考勤时间  
 >&emsp;&emsp;考勤时间列表的每一个元素亦是一个列表，代表一次考勤的开始时间和结束时间，下面这个例子能让你更加清楚如何制定自己的考勤时间表  
 >>Tips:
-不要更改schedule.json的文件结构，否则程序无法正常运行
+不要更改schedule.json的文件结构；时间要严格按照"时:分"的格式，不要精确到秒。否则将造成程序无法正常运行
 
 <br>
 
-**chedule.json**
+**schedule.json**
 
 ```
 {
@@ -120,6 +128,26 @@
 |星期五|14:30-17:30|
 |星期六|-|
 
+<br>
+
+*按照自己的需求设置即可，下面我们来对schedule.json进行在线编辑*
+
+<br>
+
+**点击schedule.json**
+![点击schedule.json](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Click%20schedule.png "")
+
+<br>
+
+**编辑schedule.json**
+![编辑schedule.json](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Edit%20schedule.png "")
+
+<br>
+
+**提交修改，成功设置考勤时间**
+![提交修改](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Set%20schedule.png "")
+
+<br>
 
 ## 2.4. * 配置config.ini
 
@@ -131,21 +159,28 @@ int类型，设置考勤职位的ID，当你有2个职位的时候可能会用�
 
 <br>
 
+>文件的设置方法可参考[2.3. 设置考勤时间](#23-设置考勤时间)
+
+<br>
+
 
 
 ## 2.5. 开启Actions定时任务
-**点击Actions**  
-![点击Actions](h "")
+**点击Actions，启动工作流**  
+![点击Actions开启工作流](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Start%20action.png "")
+![手动开启该定时任务](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Manual%20start.png "")
 
-**点击Enable workflow启动工作流**  
-![点击Enable workflow](h "")
+<br>
+
+**启动成功！**  
+![点击Enable workflow](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Action%20success.png "")
 
 
 # 3. 项目结构
 >[返回目录](#目录)
 
     auto_attendance
-    │  attendance.py
+    │  attendance.py    
     │  config.ini
     │  README.md
     │  requirements.txt
@@ -155,13 +190,11 @@ int类型，设置考勤职位的ID，当你有2个职位的时候可能会用�
     │  └─workflows
     │          main.yml
     │
-    ├─Dgut
-    │      DgutLogin.py
-    │      DgutXgxtt.py
-    │      __init__.py
-    │      错误类型的说明.png
-    │
-    └─img
+    └─Dgut
+            DgutLogin.py
+            DgutXgxtt.py
+            __init__.py
+            错误类型的说明.png
 
 - attendance.py:
 主程序
@@ -177,8 +210,7 @@ int类型，设置考勤职位的ID，当你有2个职位的时候可能会用�
 YAML文件，创建github action的工作流workflows
 - Dgut:
 作者编写的用于莞工账号模拟登录和相关系统进行爬虫操作的库
-- img:
-存放README.md所需的图片资源
+
 
 # 4. 常见问题
 >[返回目录](#目录)

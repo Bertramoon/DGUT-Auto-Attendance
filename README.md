@@ -26,7 +26,7 @@
 # 1. 项目概述
 >[返回目录](#目录)
 # 1.1. 简介
-&emsp;&emsp;Auto_Attendance实现莞工学工系统勤工俭学岗位自动打卡的功能，适用于各学生助理、助理班主任等勤工俭学职位的日常考勤打卡。可以避免忘记打卡和打了卡但忘记签退等因“忘记”而引发的情况。  
+&emsp;&emsp;Auto_Attendance实现莞工学工系统勤工俭学岗位自动打卡的功能，适用于各学生助理、助理班主任等勤工俭学职位的日常考勤打卡。**用以实现自动考勤，避免忘记打卡和打了卡但忘记签退等因“忘记”而引发的情况。**  
 &emsp;&emsp;因为云服务器的不稳定情况，Github Actions设置的定时任务往往会有几分钟到几十分钟不等的延迟；加上GitHub Actions本身的保护机制，单个程序最大运行时间是360分钟。因此，为保证其稳定性，程序定时每天7:30和13:30启动，然后在python程序中设置简单的循环进行监控，在需要签到和签退的时刻运行签到和签退操作。除了可以设置个人的考勤时间外，还能设置是否在休息日（包括法定节假日）是否考勤。
 
 
@@ -64,19 +64,19 @@
 
 <br>
 
-**添加USERNAME**
+添加USERNAME
 
 ![添加USERNAME](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Add%20username.png "")
 
 <br>
 
-**添加PASSWORD**
+添加PASSWORD
 
 ![添加PASSWORD](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Add%20password.png "")
 
 <br>
 
-**添加成功**
+添加成功
 
 ![添加secret成功](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Set%20secrets%20success.png "")
 
@@ -84,10 +84,10 @@
 ## 2.3. 设置考勤时间
 
 >**设置考勤时间不需要编辑python代码，仅需要编辑schedule.json文件**  
->&emsp;&emsp;在schedule.json文件中，"0"-"6"表示星期日-星期六（每周的第一天是星期日），其映射的列表表示考勤时间  
+>&emsp;&emsp;在schedule.json文件中，**"0"-"6"表示星期日-星期六**（每周的第一天是星期日），其映射的列表表示考勤时间  
 >&emsp;&emsp;考勤时间列表的每一个元素亦是一个列表，代表一次考勤的开始时间和结束时间，下面这个例子能让你更加清楚如何制定自己的考勤时间表  
->>Tips:
-不要更改schedule.json的文件结构；时间要严格按照"时:分"的格式，不要精确到秒。否则将造成程序无法正常运行
+>>*Tips:*
+*不要更改schedule.json的文件结构；时间要严格按照"时:分"的格式，不要精确到秒。否则将造成程序无法正常运行*
 
 <br>
 
@@ -123,7 +123,7 @@
 
 
 
-**上面这段json代码的意思是：**
+上面这段json代码的意思是：
 |星期|考勤时间|
 :-:|:-:|
 |星期日|-|
@@ -140,17 +140,17 @@
 
 <br>
 
-**点击schedule.json**
+点击schedule.json
 ![点击schedule.json](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Click%20schedule.png "")
 
 <br>
 
-**编辑schedule.json**
+编辑schedule.json
 ![编辑schedule.json](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Edit%20schedule.png "")
 
 <br>
 
-**提交修改，成功设置考勤时间**
+提交修改，成功设置考勤时间
 ![提交修改](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Set%20schedule.png "")
 
 <br>
@@ -165,11 +165,36 @@ int类型，设置考勤职位的ID，当你有2个职位的时候可能会用�
 
 <br>
 
->文件配置可参考[2.3. 设置考勤时间](#23-设置考勤时间)
+*如果有多个职位，需要指定具体某一个职位；或者想要提高运行效率，可以配置一下workAssignmentId*  
+*以下是配置方法。若无需配置，[跳到下一节](#25-开启Actions定时任务)*
+
+首先登录[学工系统](http://stu.dgut.edu.cn/homepage.jsp)，来到考勤页面，并按F12打开开发者工具
+![登录学工系统，来到上岗考勤页面，打开开发者工具](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Search%20workAssignmentId_1.png "")
 
 <br>
 
+搜索workAssignmentId
+![按Ctrl+F打开搜索框，输入workAssignmentId进行搜索，找到"请选择工作考勤"](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Search%20workAssignmentId_2.png "")
 
+<br>
+
+双击select标签，找到workAssignmentId
+![双击select标签](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Search%20workAssignmentId_3.png "")
+![找到workAssignmentId](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Search%20workAssignmentId_4.png "")
+
+<br>
+
+假设网安学院学生工作助理的workAssignmentId=9200。那么，config.ini文件应该这么写
+
+    [attendance]
+    holiday_attendance = False
+    workAssignmentId = 9200
+
+<br>
+
+*文件在线配置的方法可参考[2.3. 设置考勤时间](#23-设置考勤时间)*
+
+<br>
 
 ## 2.5. 开启Actions定时任务
 **点击Actions，启动工作流**  

@@ -29,7 +29,6 @@
 &emsp;&emsp;Auto_Attendance实现莞工学工系统勤工俭学岗位自动打卡的功能，适用于各学生助理、助理班主任等勤工俭学职位的日常考勤打卡。**用以实现自动考勤，避免忘记打卡和打了卡但忘记签退等因“忘记”而引发的情况。**  
 &emsp;&emsp;因为云服务器的不稳定情况，Github Actions设置的定时任务往往会有几分钟到几十分钟不等的延迟；加上GitHub Actions本身的保护机制，单个程序最大运行时间是360分钟。因此，为保证其稳定性，程序定时每天7:30和13:30启动，然后在python程序中设置简单的循环进行监控，在需要签到和签退的时刻运行签到和签退操作。除了可以设置个人的考勤时间外，还能设置是否在休息日（包括法定节假日）是否考勤。
 
-
 # 1.2. 功能展示
 ![功能展示](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Function%20display.png "")
 
@@ -39,47 +38,33 @@
 - 网络爬虫（主要是requests和解析库的使用）
 - 配置文件的基本认识
 
-
 # 2. 部署
 >[返回目录](#目录)
 ## 2.1. fork仓库
-
 ![fork仓库](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Fork%20repository.png "")
 
-<br>
 
 ## 2.2. 设置Secrets
 ![点击Settings](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Click%20Settings.png "")
 
-<br>
 
 ![添加secrets](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Click%20Secrets.png "")
 
-<br>
 
 |需要添加的repository secret|含义|例|
 :-:|:-:|:-:
 |USERNAME|DGUT中央认证系统账号|20184141xxxx|
 |PASSWORD|密码|123456|
 
-<br>
 
 添加USERNAME
-
 ![添加USERNAME](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Add%20username.png "")
 
-<br>
-
 添加PASSWORD
-
 ![添加PASSWORD](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Add%20password.png "")
 
-<br>
-
 添加成功
-
 ![添加secret成功](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Set%20secrets%20success.png "")
-
 
 ## 2.3. 设置考勤时间
 

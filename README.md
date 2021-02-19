@@ -43,19 +43,19 @@
 ## 2.1. fork仓库
 ![fork仓库](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Fork%20repository.png "")
 
-
 ## 2.2. 设置Secrets
 ![点击Settings](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Click%20Settings.png "")
 
-
 ![添加secrets](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Click%20Secrets.png "")
 
+<br>
 
 |需要添加的repository secret|含义|例|
 :-:|:-:|:-:
 |USERNAME|DGUT中央认证系统账号|20184141xxxx|
 |PASSWORD|密码|123456|
 
+<br>
 
 添加USERNAME
 ![添加USERNAME](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Add%20username.png "")
@@ -78,35 +78,32 @@
 
 **schedule.json**
 
-```
-{
-    "0": [
+    {
+        "0": [
 
-    ],
-    "1": [
-        ["8:30", "10:10"],
-        ["14:30", "17:30"]
-    ],
-    "2": [
-        ["8:30", "12:00"]
-    ],
-    "3": [
-        ["14:30", "17:30"]
-    ],
-    "4": [
-        ["8:30", "10:10"]
-    ],
-    "5": [
-        ["14:30", "17:00"]
-    ],
-    "6": [
-        
-    ]
-}
-``` 
+        ],
+        "1": [
+            ["8:30", "10:10"],
+            ["14:30", "17:30"]
+        ],
+        "2": [
+            ["8:30", "12:00"]
+        ],
+        "3": [
+            ["14:30", "17:30"]
+        ],
+        "4": [
+            ["8:30", "10:10"]
+        ],
+        "5": [
+            ["14:30", "17:00"]
+        ],
+        "6": [
+            
+        ]
+    }
+
 <br>
-
-
 
 上面这段json代码的意思是：
 |星期|考勤时间|
@@ -128,17 +125,11 @@
 点击schedule.json
 ![点击schedule.json](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Click%20schedule.png "")
 
-<br>
-
 编辑schedule.json
 ![编辑schedule.json](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Edit%20schedule.png "")
 
-<br>
-
 提交修改，成功设置考勤时间
 ![提交修改](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Set%20schedule.png "")
-
-<br>
 
 ## 2.4. * 配置config.ini
 
@@ -156,12 +147,8 @@ int类型，设置考勤职位的ID，当你有2个职位的时候可能会用�
 首先登录[学工系统](http://stu.dgut.edu.cn/homepage.jsp)，来到考勤页面，并按F12打开开发者工具
 ![登录学工系统，来到上岗考勤页面，打开开发者工具](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Search%20workAssignmentId_1.png "")
 
-<br>
-
 搜索workAssignmentId
 ![按Ctrl+F打开搜索框，输入workAssignmentId进行搜索，找到"请选择工作考勤"](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Search%20workAssignmentId_2.png "")
-
-<br>
 
 双击select标签，找到workAssignmentId
 ![双击select标签](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Search%20workAssignmentId_3.png "")
@@ -179,16 +166,12 @@ int类型，设置考勤职位的ID，当你有2个职位的时候可能会用�
 
 *文件在线配置的方法可参考[2.3. 设置考勤时间](#23-设置考勤时间)*
 
-<br>
-
 ## 2.5. 开启Actions定时任务
-**点击Actions，启动工作流**  
+点击Actions，启动工作流  
 ![点击Actions开启工作流](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Start%20action.png "")
 ![手动开启该定时任务](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Manual%20start.png "")
 
-<br>
-
-**启动成功！**  
+启动成功！  
 ![点击Enable workflow](https://raw.githubusercontent.com/BertraMoon/project-img/master/Auto_Attendance/Action%20success.png "")
 
 

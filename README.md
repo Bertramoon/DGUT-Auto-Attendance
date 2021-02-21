@@ -177,7 +177,7 @@ int类型，设置考勤职位的ID，当你有2个职位的时候可能会用�
 # 3. 项目结构
 >[返回目录](#目录)
 
-    auto_attendance
+    Auto_Attendance
     │  attendance.py    
     │  config.ini
     │  README.md

@@ -28,14 +28,18 @@ class DgutLogin(object):
             },
             'xgxtt': {
                 'url': r'https://cas.dgut.edu.cn/home/Oauth/getToken/appid/xgxtt.html',
-                'login_response': None,
+                'response': [],
             },
             'jwyd': {
                 'url': r'https://cas.dgut.edu.cn/home/Oauth/getToken/appid/jwyd.html',
-                'login_response': None,
+                'response': [],
             },
         }
+        # 目前收录的系统名
         self.sys = ['xgxtt', 'jwyd']
+
+        # 设置请求超时时间
+        self.timeout = 15
 
 
     def signin(self, sys_name=None):
@@ -49,11 +53,13 @@ class DgutLogin(object):
             return {'message': '参数错误：系统名', 'code': 2}
         url = self.login[sys_name]['url']
 
-        
+        all_response = []
         try:
             # 获取登录token
-            response = self.session.get(url, headers=self.login['headers'], timeout=10)
+            response = self.session.get(url, headers=self.login['headers'], timeout=self.timeout)
+            all_response.append(response)
             if response.status_code != 200:
+                self.login[sys_name]['response'].append(all_response)
                 return {'message': f'页面{url}请求失败', 'code': 300}
             
             if re.search('token = \".*?\"', response.text):
@@ -65,17 +71,21 @@ class DgutLogin(object):
                     'password': self.password,
                     '__token__': __token__
                 }
-                self.login[sys_name]['login_response'] = self.session.post(url, data=data, headers=self.login['headers'], timeout=10)
-                result = json.loads(self.login[sys_name]['login_response'].text)
+                response = self.session.post(url, data=data, headers=self.login['headers'], timeout=self.timeout)
+                all_response.append(response)
+                result = json.loads(response.text)
                 if result['code'] == 1:
                     # 认证
                     auth_url = result['info']
                     auth = self.session.get(auth_url, headers=self.login['headers'])
+                    all_response.append(auth)
+                    self.login[sys_name]['response'].append(all_response)
                     if auth.status_code == 200:
                         return result
                     else:
                         return {'message': f'认证{auth_url}失败', 'code': 302}
                 else:
+                    self.login[sys_name]['response'].append(all_response)
                     if result['code'] == 8:
                         return {'message': '密码错误', 'code': 400}
                     elif result['code'] == 15:
@@ -86,7 +96,7 @@ class DgutLogin(object):
 
             else:
                 # 已登陆过，只需要获取认证
-                self.login[sys_name]['login_response'] = response
+                self.login[sys_name]['response'].append(all_response)
                 info = None
                 if re.match(r'.*?token.*?', response.url, re.S):
                     info = response.url.strip()

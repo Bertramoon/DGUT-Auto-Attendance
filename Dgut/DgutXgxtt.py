@@ -29,11 +29,20 @@ class DgutXgxtt(DgutLogin):
                 'Host': 'stu.dgut.edu.cn',
             },
             # 系统主页
-            'homepage': 'http://stu.dgut.edu.cn/homepage.jsp',
+            'homepage': {
+                'url': 'http://stu.dgut.edu.cn/homepage.jsp',
+                'response': [],
+            },
             # 考勤界面
-            'attendance_main': 'http://stu.dgut.edu.cn/student/partwork/attendance_main.jsp',
+            'attendance_main': {
+                'url': 'http://stu.dgut.edu.cn/student/partwork/attendance_main.jsp',
+                'response': [],
+            },
             # 考勤请求
-            'attendance': 'http://stu.dgut.edu.cn/student/partwork/attendance.jsp',
+            'attendance': {
+                'url': 'http://stu.dgut.edu.cn/student/partwork/attendance.jsp',
+                'response': [],
+            },
         }
 
 
@@ -46,7 +55,9 @@ class DgutXgxtt(DgutLogin):
         '''
         try:
             # 请求考勤页职位信息
-            response = self.session.get(self.xgxtt['attendance'], headers=self.xgxtt['headers'], timeout=10)
+            response = self.session.get(self.xgxtt['attendance']['url'], headers=self.xgxtt['headers'], timeout=self.timeout)
+            self.xgxtt['attendance']['response'].append([response])
+
             if response.status_code != 200:
                 return {'message': '页面请求失败', 'code': 300}
             
@@ -60,7 +71,8 @@ class DgutXgxtt(DgutLogin):
                 id_ = item.xpath('./@value')
                 name = item.xpath('./text()')
                 workAssignment.append([id_[0], name[0]])
-            
+
+
             return {'message': '获取职位信息成功', 'code': 1, 'workAssignment': workAssignment}
         
         except requests.exceptions.ConnectTimeout:
@@ -76,29 +88,38 @@ class DgutXgxtt(DgutLogin):
     def attendance(self, flag, workAssignmentId=None):
         '''
         学工系统考勤
-        flag:int => 1->签到 / 2->签退
+        flag:int => 0->模拟到选择职位那一步，用于测试 / 1->签到 / 2->签退
         workAssignmentId:int => 职位id，为None时自动获取当前的首个职位
         '''
-        if not flag in [1, 2]:
-            return {'message': '参数错误：flag只能是1或2', 'code': 2}
-        if flag == 1:
-            action_name = 'beginWork'
-        if flag == 2:
-            action_name = 'endWork'
-        s = '签到' if flag == 1 else '签退'
-
-        # 如果没有传递workAssignmentId，自动获取可考勤的第一个职位作为考勤职位
-        if not workAssignmentId:
-            workAssignment = self.get_workAssignment()
-            if workAssignment['code'] != 1:
-                message = workAssignment['message']
-                return {'message': f'请求信息失败：{message}', 'code': 305}
-            workAssignmentId = workAssignment['workAssignment'][0][0]
-
         try:
+            all_response = []
+            
+            if not flag in [0, 1, 2]:
+                return {'message': '参数错误：flag只能是0、1或2', 'code': 2}
+            if flag == 0:
+                action_name = ''
+                s = '测试'
+            if flag == 1:
+                action_name = 'beginWork'
+                s = '签到'
+            if flag == 2:
+                action_name = 'endWork'
+                s = '签退'
+            
+            # 如果没有传递workAssignmentId，自动获取可考勤的第一个职位作为考勤职位
+            if not workAssignmentId:
+                workAssignment = self.get_workAssignment()
+                if workAssignment['code'] != 1:
+                    message = workAssignment['message']
+                    return {'message': f'请求信息失败：{message}', 'code': 305}
+                workAssignmentId = workAssignment['workAssignment'][0][0]
+
+        
             # 请求考勤界面
-            response = self.session.get(self.xgxtt['attendance'], headers=self.xgxtt['headers'], timeout=10)
+            response = self.session.get(self.xgxtt['attendance']['url'], headers=self.xgxtt['headers'], timeout=self.timeout)
+            all_response.append(response)
             if response.status_code != 200:
+                self.xgxtt['attendance']['response'].append(all_response)
                 return {'message': '考勤页面请求失败', 'code': 300}
             
             # 获取session_token
@@ -115,7 +136,10 @@ class DgutXgxtt(DgutLogin):
             }
 
             # 发送请求
-            response = self.session.post(self.xgxtt['attendance'], headers=self.xgxtt['headers'], data=data, timeout=10)
+            response = self.session.post(self.xgxtt['attendance']['url'], headers=self.xgxtt['headers'], data=data, timeout=self.timeout)
+            all_response.append(response)
+            self.xgxtt['attendance']['response'].append(all_response)
+            
             if response.status_code != 200:
                 return {'message': f'考勤{s}请求失败', 'code': 300}
             sign_time = datetime.datetime.now()

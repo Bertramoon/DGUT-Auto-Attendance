@@ -151,7 +151,7 @@ if __name__ == '__main__':
             test_min = min(test)
             test_max = max(test)
             while True:
-                if utc_local(datetime.datetime.utcnow()-test_min) >= start_time:
+                if utc_local(datetime.datetime.utcnow()+test_min) >= start_time:
                     break
             
             # 签到
@@ -163,7 +163,7 @@ if __name__ == '__main__':
 
 
             while True:
-                if utc_local(datetime.datetime.utcnow()-test_max) >= end_time:
+                if utc_local(datetime.datetime.utcnow()+test_max) >= end_time:
                     break
                 
             # 签退

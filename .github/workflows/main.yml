@@ -1,6 +1,9 @@
 name: 学生助理考勤
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     - cron: '30 5,23 * * *'
 

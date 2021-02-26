@@ -150,13 +150,17 @@ if __name__ == '__main__':
                 raise Exception("请求超时")
             test_min = min(test)
             test_max = max(test)
+            print(f"test_min:{test_min}")
+            print(f"test_max:{test_max}")
             while True:
                 if utc_local(datetime.datetime.utcnow()+test_min) >= start_time:
                     break
-            
+            time1 = datetime.datetime.utrnow()
+            print(f"签到开始:{utc_local(datetime.datetime.utcnow())}")
             # 签到
             response = xgxtt_sign(username, password, 1, workAssignmentId=demand['workAssignmentId'])
             response['info']['time'] = utc_local(response['info']['time'])
+            print(f"签到结束:{utc_local(datetime.datetime.utcnow())}")
             print(response)
             if response['code'] != 1:
                 raise Exception("启动自动考勤失败！")
@@ -165,10 +169,11 @@ if __name__ == '__main__':
             while True:
                 if utc_local(datetime.datetime.utcnow()+test_max) >= end_time:
                     break
-                
+            print(f"签退开始:{utc_local(datetime.datetime.utcnow())}")
             # 签退
             response = xgxtt_sign(username, password, 2, workAssignmentId=demand['workAssignmentId'])
             response['info']['time'] = utc_local(response['info']['time'])
+            print(f"签退结束:{utc_local(datetime.datetime.utcnow())}")
             print(response)
             if response['code'] != 1:
                 raise Exception("签到成功了但签退失败！")

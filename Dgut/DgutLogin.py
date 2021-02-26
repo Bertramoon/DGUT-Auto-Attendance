@@ -5,8 +5,10 @@ import json
 class DgutLogin(object):
     '''
     登录类
+    username: str => dgut中央认证用户名
+    password: str => 密码
     '''
-    def __init__(self, username, password):
+    def __init__(self, username: str, password: str):
         '''
         构造函数
         '''
@@ -42,9 +44,10 @@ class DgutLogin(object):
         self.timeout = 15
 
 
-    def signin(self, sys_name=None):
+    def signin(self, sys_name: str=None):
         '''
         登录函数
+        sys_name => 系统名 | None=="xgxtt"
         '''
         if not sys_name:
             url = self.login['xgxtt']['url']
@@ -119,4 +122,3 @@ class DgutLogin(object):
         except:
             # 未知的错误
             return {'message': '未知的错误', 'code': 5}
-        

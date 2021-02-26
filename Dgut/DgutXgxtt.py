@@ -21,6 +21,11 @@ def xgxtt_decorator_signin(func):
 
 
 class DgutXgxtt(DgutLogin):
+    '''
+    学工系统类
+    username: str => dgut中央认证用户名
+    password: str => 密码
+    '''
     def __init__(self, username, password):
         DgutLogin.__init__(self, username, password)
         self.xgxtt = {
@@ -85,7 +90,7 @@ class DgutXgxtt(DgutLogin):
 
 
     @xgxtt_decorator_signin
-    def attendance(self, flag, workAssignmentId=None):
+    def attendance(self, flag: int, workAssignmentId: int=None):
         '''
         学工系统考勤
         flag:int => 0->模拟到选择职位那一步，用于测试 / 1->签到 / 2->签退
@@ -161,4 +166,5 @@ class DgutXgxtt(DgutLogin):
         except:
             # 未知的错误
             return {'message': '未知的错误', 'code': 5}
+
 

@@ -152,7 +152,7 @@ if __name__ == '__main__':
             while True:
                 if utc_local(datetime.datetime.utcnow()+test_mid) >= start_time:
                     break
-            print(f"签到开始:{utc_local(datetime.datetime.utcnow())}")
+
             # 签到
             response = xgxtt_sign(username, password, 1, workAssignmentId=demand['workAssignmentId'])
             response['info']['time'] = utc_local(response['info']['time'])
@@ -164,7 +164,7 @@ if __name__ == '__main__':
             while True:
                 if utc_local(datetime.datetime.utcnow()+test_mid) >= end_time:
                     break
-            print(f"签退开始:{utc_local(datetime.datetime.utcnow())}")
+
             # 签退
             response = xgxtt_sign(username, password, 2, workAssignmentId=demand['workAssignmentId'])
             response['info']['time'] = utc_local(response['info']['time'])

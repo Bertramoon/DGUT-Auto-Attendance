@@ -96,8 +96,8 @@ if __name__ == '__main__':
         run_time = utc_local(datetime.datetime.utcnow())
         if not run_time:
             raise Exception("调用时间转换函数utc_local发生错误")
-        print(f"程序启动...\n当前时间 => {run_time.year}-{run_time.month}-{run_time.day} {run_time.hour}:{run_time.minute}:{run_time.second}")
-
+        print(f"程序启动...\n当前时间 => {run_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        
         if not demand['holiday_attendance'] and calendar.is_holiday(run_time):
             raise Exception("今天是休息日")
 
@@ -148,31 +148,26 @@ if __name__ == '__main__':
                 time.sleep(60)
             if not len(test):
                 raise Exception("请求超时")
-            test_min = min(test)
-            test_max = max(test)
-            print(f"test_min:{test_min}")
-            print(f"test_max:{test_max}")
+            test_mid = test[1] if len(test) >= 2 else test[0]
             while True:
-                if utc_local(datetime.datetime.utcnow()+test_min) >= start_time:
+                if utc_local(datetime.datetime.utcnow()+test_mid) >= start_time:
                     break
             print(f"签到开始:{utc_local(datetime.datetime.utcnow())}")
             # 签到
             response = xgxtt_sign(username, password, 1, workAssignmentId=demand['workAssignmentId'])
             response['info']['time'] = utc_local(response['info']['time'])
-            print(f"签到结束:{utc_local(datetime.datetime.utcnow())}")
             print(response)
             if response['code'] != 1:
                 raise Exception("启动自动考勤失败！")
 
 
             while True:
-                if utc_local(datetime.datetime.utcnow()+test_max) >= end_time:
+                if utc_local(datetime.datetime.utcnow()+test_mid) >= end_time:
                     break
             print(f"签退开始:{utc_local(datetime.datetime.utcnow())}")
             # 签退
             response = xgxtt_sign(username, password, 2, workAssignmentId=demand['workAssignmentId'])
             response['info']['time'] = utc_local(response['info']['time'])
-            print(f"签退结束:{utc_local(datetime.datetime.utcnow())}")
             print(response)
             if response['code'] != 1:
                 raise Exception("签到成功了但签退失败！")

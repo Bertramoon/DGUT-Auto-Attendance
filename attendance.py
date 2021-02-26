@@ -155,7 +155,6 @@ if __name__ == '__main__':
             while True:
                 if utc_local(datetime.datetime.utcnow()+test_min) >= start_time:
                     break
-            time1 = datetime.datetime.utrnow()
             print(f"签到开始:{utc_local(datetime.datetime.utcnow())}")
             # 签到
             response = xgxtt_sign(username, password, 1, workAssignmentId=demand['workAssignmentId'])

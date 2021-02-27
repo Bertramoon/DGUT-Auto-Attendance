@@ -125,7 +125,7 @@ if __name__ == '__main__':
             end_time = datetime.datetime(year=run_time.year, month=run_time.month, day=run_time.day, hour=int(end[0]), minute=int(end[1]))
 
             print("-"*20)
-            print(f"{start_time.hour}:{start_time.minute}-{end_time.hour}:{end_time.minute}...")
+            print(f"{atten[0]}-{atten[1]}...")
 
 
             # 如果已经不在这段考勤时间（设定是必须要在考勤签到时间的10分钟之前运行到这里才能通过）

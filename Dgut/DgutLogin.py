@@ -41,7 +41,7 @@ class DgutLogin(object):
         self.sys = ['xgxtt', 'jwyd']
 
         # 设置请求超时时间
-        self.timeout = 15
+        self.timeout = 25
 
 
     def signin(self, sys_name: str=None):

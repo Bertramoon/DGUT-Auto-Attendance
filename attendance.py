@@ -7,30 +7,39 @@ import configparser
 import chinese_calendar as calendar
 
 
-
-def get_schedule(filename='./schedule.json'):
+def get_schedule(filename: str, flag: int):
     '''
     获取今天的考勤时间表
-    返回一个考勤时间列表[[start1, end1], [start2, end2]]
+    返回一个考勤时间列表[[start1, end1], [start2, end2]]，也可能是空列表
+    flag => 1->读取星期考勤表 2->读取特殊情况考勤表
     '''
     try:
-        fp = open(filename, 'r')
-        schedule = json.loads(fp.read())
-        
-        # 获取今天的时间表
+        # 打开读取文件
+        with open(filename, 'r') as fp:
+            schedule = json.loads(fp.read())
+        # 获取当前时间
         now = datetime.datetime.utcnow()+datetime.timedelta(hours=8)
-        week = now.strftime("%w")
-        
-        schedule_today = schedule.get(week)
-        if schedule_today == None:
+
+        if flag == 1:
+            schedule_today = schedule.get(now.strftime("%w"))
+        elif flag == 2:
+            schedule_today = schedule.get(now.strftime('%Y-%m-%d'))
+
+        else:
             return None
-        schedule_today.sort(key=lambda elem: int(elem[0].split(':')[0]))
+
+        if not schedule_today:
+            return None
+        schedule_today = list(map(lambda i: list(
+            map(lambda j: datetime.datetime.strptime(j, '%H:%M').time(), i)), schedule_today))
+        schedule_today.sort()
         return schedule_today
 
     except FileNotFoundError:
         print(f'没找到文件{filename}')
 
-def get_config(filename):
+
+def get_config(filename: str):
     try:
         demand = {
             'holiday_attendance': False,
@@ -40,13 +49,17 @@ def get_config(filename):
         # 获取config.ini配置文件信息
         config = configparser.ConfigParser()
         config.read(filename, encoding='utf-8')
+        config.getboolean('attendace', 's')
         attendance_demand = config.items('attendance')
         for item in attendance_demand:
             demand[item[0]] = item[1]
-        
+
         if isinstance(demand['holiday_attendance'], str):
-            demand['holiday_attendance'] = bool(demand['holiday_attendance'])
-        
+            if demand['holiday_attendance'] in ['true', 'True', 'TRUE']:
+                demand['holiday_attendance'] = True
+            else:
+                demand['holiday_attendance'] = False
+
         if isinstance(demand['workAssignmentId'], str):
             demand['workAssignmentId'] = int(demand['workAssignmentId'])
     except configparser.NoSectionError:
@@ -59,7 +72,7 @@ def get_config(filename):
         return demand
 
 
-def xgxtt_sign(username: str, password: str, flag: int, workAssignmentId=None):
+def xgxtt_sign(username: str, password: str, flag: int, workAssignmentId: int = None):
     '''
     登录并考勤签到/签退
     flag = 0 => 测试
@@ -80,93 +93,81 @@ def xgxtt_sign(username: str, password: str, flag: int, workAssignmentId=None):
                 break
     return response
 
+
 def utc_local(t: datetime.datetime):
     if isinstance(t, datetime.datetime):
         return t+datetime.timedelta(hours=8)
     return False
 
+
 if __name__ == '__main__':
 
-    
     try:
-        # 读取配置文件
-        demand = get_config(filename="./config.ini")
-
-        # 获取当前时间及是否为休息日
-        run_time = utc_local(datetime.datetime.utcnow())
-        if not run_time:
-            raise Exception("调用时间转换函数utc_local发生错误")
-        print(f"程序启动...\n当前时间 => {run_time.strftime('%Y-%m-%d %H:%M:%S')}")
-        
-        if not demand['holiday_attendance'] and calendar.is_holiday(run_time):
-            raise Exception("今天是休息日")
-
-        # 获取考勤时间，判断是否需要考勤
-        schedule = get_schedule(filename='./schedule.json')
-        if len(schedule):
-            print("今天的考勤时间:", end='')
-            for item in schedule:
-                print(f" <{item[0]}-{item[1]}>", end='')
-            print()
-        else:
-            raise Exception("今天没有考勤安排")
-
-
-        # 获取账号密码，验证账号密码格式
+        # 1、获取账号密码，验证账号密码格式
         username = sys.argv[1]
         password = sys.argv[2]
 
+        # 2、读取配置文件
+        demand = get_config(filename="./config.ini")
+
+        # 3、读取特殊情况考勤表
+        special = get_schedule(filename='./special.json', flag=2)
+
+        # 4、获取当前时间，并判断是否为休息日
+        run_time = utc_local(datetime.datetime.utcnow())
+        print(f"程序启动...\n当前时间 => {run_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        if calendar.is_holiday(run_time) and not demand['holiday_attendance'] and not special:
+            raise Exception("今天是休息日")
+
+        # 5、获取考勤时间，判断是否需要考勤
+        schedule = special if isinstance(special, list) else get_schedule(
+            filename='./schedule.json', flag=1)
+
+        if not schedule:
+            raise Exception("今天没有考勤安排")
+        else:
+            print("今天的考勤时间:", end='')
+            for item in schedule:
+                print(
+                    f" <{item[0].strftime('%H:%M')}-{item[1].strftime('%H:%M')}>", end='')
+            print()
 
         # 启动考勤程序
-        for atten in schedule:
-            start = atten[0].split(":")
-            end = atten[1].split(":")
-            start_time = datetime.datetime(year=run_time.year, month=run_time.month, day=run_time.day, hour=int(start[0]), minute=int(start[1]))
-            end_time = datetime.datetime(year=run_time.year, month=run_time.month, day=run_time.day, hour=int(end[0]), minute=int(end[1]))
+        for item in schedule:
+            start_time = item[0]
+            end_time = item[1]
 
             print("-"*20)
-            print(f"{atten[0]}-{atten[1]}...")
+            print(f"{start_time.strftime('%H:%M')}-{end_time.strftime('%H:%M')}...")
 
-
-            # 如果已经不在这段考勤时间（设定是必须要在考勤签到时间的10分钟之前运行到这里才能通过）
-            if utc_local(datetime.datetime.utcnow()+datetime.timedelta(minutes=10)) > start_time:
+            # 如果已经错过该考勤时间，则进入下一个考勤时间
+            if utc_local(datetime.datetime.utcnow()).time() > start_time:
                 print("已经错过了该考勤时间")
                 continue
-            
+
             # 如果考勤无法正常签退，则不进行考勤（程序只能运行6小时）
-            if (run_time+datetime.timedelta(hours=5.9)) < end_time:
+            if run_time.hour + 5.9 < end_time.hour:
                 raise Exception("计算得到该程序运行总时长将超过6小时，程序自动终止运行")
-            
-            # 在考勤开始的8分钟前运行测试，得到进行签到至少需要花费多少时间，并以此时间提前进行签到
-            test = []
-            for i in range(3):
-                now1 = datetime.datetime.utcnow()
-                response = xgxtt_sign(username, password, 0, workAssignmentId=demand['workAssignmentId'])
-                now2 = datetime.datetime.utcnow()
-                if response['code'] == 1:
-                    test.append(now2-now1)
-                time.sleep(60)
-            if not len(test):
-                raise Exception("请求超时")
-            test_mid = test[1] if len(test) >= 2 else test[0]
+
             while True:
-                if utc_local(datetime.datetime.utcnow()+test_mid) >= start_time:
+                if utc_local(datetime.datetime.utcnow()).time() >= start_time:
                     break
 
-            # 签到
-            response = xgxtt_sign(username, password, 1, workAssignmentId=demand['workAssignmentId'])
+            # 6、签到
+            response = xgxtt_sign(username, password, 1,
+                                  workAssignmentId=demand['workAssignmentId'])
             response['info']['time'] = utc_local(response['info']['time'])
             print(response)
             if response['code'] != 1:
                 raise Exception("启动自动考勤失败！")
 
-
             while True:
-                if utc_local(datetime.datetime.utcnow()+test_mid) >= end_time:
+                if utc_local(datetime.datetime.utcnow()).time() >= end_time:
                     break
 
-            # 签退
-            response = xgxtt_sign(username, password, 2, workAssignmentId=demand['workAssignmentId'])
+            # 7、签退
+            response = xgxtt_sign(username, password, 2,
+                                  workAssignmentId=demand['workAssignmentId'])
             response['info']['time'] = utc_local(response['info']['time'])
             print(response)
             if response['code'] != 1:
@@ -174,9 +175,6 @@ if __name__ == '__main__':
 
     except IndexError:
         print("请完整输入账号和密码")
-    
-    except ValueError as e:
-        print(e)
 
     except Exception as e:
         if not e:
@@ -186,6 +184,3 @@ if __name__ == '__main__':
 
     except:
         print("程序出现未知错误")
-
-    
-    

@@ -5,6 +5,12 @@ import datetime
 import json
 import configparser
 import chinese_calendar as calendar
+import logging
+import logging.config
+import yaml
+import os
+import click
+import requests
 
 
 def get_schedule(filename: str, flag: int):
@@ -49,25 +55,18 @@ def get_config(filename: str):
         # 获取config.ini配置文件信息
         config = configparser.ConfigParser()
         config.read(filename, encoding='utf-8')
-        config.getboolean('attendace', 's')
-        attendance_demand = config.items('attendance')
-        for item in attendance_demand:
-            demand[item[0]] = item[1]
-
-        if isinstance(demand['holiday_attendance'], str):
-            if demand['holiday_attendance'] in ['true', 'True', 'TRUE']:
-                demand['holiday_attendance'] = True
-            else:
-                demand['holiday_attendance'] = False
-
-        if isinstance(demand['workAssignmentId'], str):
-            demand['workAssignmentId'] = int(demand['workAssignmentId'])
-    except configparser.NoSectionError:
-        print("缺少配置文件config.ini或缺少session [attendance]")
-        demand = {
-            'holiday_attendance': False,
-            'workAssignmentId': None,
-        }
+        if config.has_section('attendance'):
+            if config.has_option('attendance', 'holiday_attendance'):
+                demand['holiday_attendance'] = config.getboolean(
+                    'attendance', 'holiday_attendance')
+            if config.has_option('attendance', 'workAssignmentId'):
+                demand['workAssignmentId'] = config.getint(
+                    'attendance', 'workAssignmentId')
+    except ValueError:
+        logger.error(
+            "配置获取错误，系统将使用默认配置（节假日不打卡，考勤岗位ID为系统列表中的第一个）", exc_info=True)
+    except:
+        logger.error(f"读取配置文件{filename}出错", exc_info=True)
     finally:
         return demand
 
@@ -100,49 +99,55 @@ def utc_local(t: datetime.datetime):
     return False
 
 
-if __name__ == '__main__':
+def set_log(default_path: str = 'log.yaml', default_level=logging.INFO):
+    '''
+    读取日志配置
+    '''
+    path = default_path
+    if os.path.exists(path):
+        with open(path, 'r', encoding='utf-8') as f:
+            config = yaml.load(f, Loader=yaml.FullLoader)
+            logging.config.dictConfig(config)
+    else:
+        logging.basicConfig(level=default_level)
 
+
+@click.command()
+@click.option('-U', '--username', required=True, help="中央认证账号用户名", type=str)
+@click.option('-P', '--password', required=True, help="中央认证账号密码", type=str)
+def run(username, password):
     try:
-        # 1、获取账号密码，验证账号密码格式
-        username = sys.argv[1]
-        password = sys.argv[2]
-
-        # 2、读取配置文件
+        # 1、读取配置文件
         demand = get_config(filename="./config.ini")
 
-        # 3、读取特殊情况考勤表
+        # 2、读取特殊情况考勤表
         special = get_schedule(filename='./special.json', flag=2)
 
-        # 4、获取当前时间，并判断是否为休息日
+        # 3、获取当前时间，并判断是否为休息日
         run_time = utc_local(datetime.datetime.utcnow())
-        print(f"程序启动...\n当前时间 => {run_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        logger.debug(f"程序启动 >> {run_time.strftime('%Y-%m-%d %H:%M:%S')}")
         if calendar.is_holiday(run_time) and not demand['holiday_attendance'] and not special:
             raise Exception("今天是休息日")
 
-        # 5、获取考勤时间，判断是否需要考勤
+        # 4、获取考勤时间，判断是否需要考勤
         schedule = special if isinstance(special, list) else get_schedule(
             filename='./schedule.json', flag=1)
 
         if not schedule:
             raise Exception("今天没有考勤安排")
-        else:
-            print("今天的考勤时间:", end='')
-            for item in schedule:
-                print(
-                    f" <{item[0].strftime('%H:%M')}-{item[1].strftime('%H:%M')}>", end='')
-            print()
 
-        # 启动考勤程序
+        # 5、启动考勤程序
         for item in schedule:
             start_time = item[0]
             end_time = item[1]
 
-            print("-"*20)
-            print(f"{start_time.strftime('%H:%M')}-{end_time.strftime('%H:%M')}...")
+            logging.info("-"*20)
+            logger.info(
+                f"正在进行{start_time.strftime('%H:%M')}-{end_time.strftime('%H:%M')}的考勤...")
 
             # 如果已经错过该考勤时间，则进入下一个考勤时间
             if utc_local(datetime.datetime.utcnow()).time() > start_time:
-                print("已经错过了该考勤时间")
+                logger.info("已经错过了该考勤时间")
                 continue
 
             # 如果考勤无法正常签退，则不进行考勤（程序只能运行6小时）
@@ -157,30 +162,41 @@ if __name__ == '__main__':
             response = xgxtt_sign(username, password, 1,
                                   workAssignmentId=demand['workAssignmentId'])
             response['info']['time'] = utc_local(response['info']['time'])
-            print(response)
+            logger.info(response)
             if response['code'] != 1:
                 raise Exception("启动自动考勤失败！")
 
             while True:
                 if utc_local(datetime.datetime.utcnow()).time() >= end_time:
                     break
+                time.sleep(5)
 
             # 7、签退
             response = xgxtt_sign(username, password, 2,
                                   workAssignmentId=demand['workAssignmentId'])
             response['info']['time'] = utc_local(response['info']['time'])
-            print(response)
+            logger.info(response)
             if response['code'] != 1:
                 raise Exception("签到成功了但签退失败！")
 
     except IndexError:
-        print("请完整输入账号和密码")
-
+        logger.warning("请完整输入账号和密码", exc_info=True)
+    except requests.exceptions.ConnectTimeout:
+        logger.error('服务器连接超时', exc_info=True)
+    except requests.exceptions.ReadTimeout:
+        logger.error('在指定时间内未响应', exc_info=True)
+    except requests.exceptions.ConnectionError:
+        logger.error('与服务器连接失败，可能是找不到服务器或网络环境差', exc_info=True)
     except Exception as e:
         if not e:
-            print("程序结束：可能是未知的错误")
+            logger.error("程序结束：可能是未知的错误", exc_info=True)
         else:
-            print(e)
-
+            logger.warning(e, exc_info=True)
     except:
-        print("程序出现未知错误")
+        logger.error("程序出现未知错误", exc_info=True)
+
+
+if __name__ == '__main__':
+    set_log()
+    logger = logging.getLogger('main')
+    run()

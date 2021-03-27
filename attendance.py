@@ -1,4 +1,4 @@
-from Dgut.DgutXgxtt import DgutXgxtt
+from dgut_requests.dgutXgxtt import dgutXgxtt
 import time
 import sys
 import datetime
@@ -78,7 +78,7 @@ def xgxtt_sign(username: str, password: str, flag: int, workAssignmentId: int = 
     flag = 1 => 签到
     flag = 2 => 签退
     '''
-    mydgut = DgutXgxtt(username, password)
+    mydgut = dgutXgxtt(username, password)
 
     # 测试/签到/签退
     response = mydgut.attendance(flag=flag)
@@ -143,7 +143,7 @@ def run(username, password):
 
             logging.info("-"*20)
             logger.info(
-                f"正在进行{start_time.strftime('%H:%M')}-{end_time.strftime('%H:%M')}的考勤...")
+                f"正在进行{start_time.strftime('%H:%M')}至{end_time.strftime('%H:%M')}的考勤...")
 
             # 如果已经错过该考勤时间，则进入下一个考勤时间
             if utc_local(datetime.datetime.utcnow()).time() > start_time:
@@ -157,6 +157,7 @@ def run(username, password):
             while True:
                 if utc_local(datetime.datetime.utcnow()).time() >= start_time:
                     break
+                time.sleep(5)
 
             # 6、签到
             response = xgxtt_sign(username, password, 1,
@@ -169,7 +170,7 @@ def run(username, password):
             while True:
                 if utc_local(datetime.datetime.utcnow()).time() >= end_time:
                     break
-                time.sleep(5)
+                time.sleep(15)
 
             # 7、签退
             response = xgxtt_sign(username, password, 2,

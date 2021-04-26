@@ -1,12 +1,10 @@
-from dgut_requests.dgutXgxtt import dgutXgxtt
+from dgut_requests.dgut import dgutXgxt
 import time
 import sys
 import datetime
 import json
 import configparser
 import chinese_calendar as calendar
-import logging
-import logging.config
 import yaml
 import os
 import click
@@ -63,53 +61,39 @@ def get_config(filename: str):
                 demand['workAssignmentId'] = config.getint(
                     'attendance', 'workAssignmentId')
     except ValueError:
-        logger.error(
-            "配置获取错误，系统将使用默认配置（节假日不打卡，考勤岗位ID为系统列表中的第一个）", exc_info=True)
+        print(
+            "配置获取错误，系统将使用默认配置（节假日不打卡，考勤岗位ID为系统列表中的第一个）")
     except:
-        logger.error(f"读取配置文件{filename}出错", exc_info=True)
+        print(f"读取配置文件{filename}出错")
     finally:
         return demand
 
 
-def xgxtt_sign(username: str, password: str, flag: int, workAssignmentId: int = None):
+def xgxtt_sign(username: str, password: str, flag: int, workAssignmentId: int = None, count=0):
     '''
     登录并考勤签到/签退
-    flag = 0 => 测试
     flag = 1 => 签到
     flag = 2 => 签退
     '''
-    mydgut = dgutXgxtt(username, password)
+    try:
+        if count > 3:
+            return {'code': 0}
+        mydgut = dgutXgxt(username, password)
 
-    # 测试/签到/签退
-    response = mydgut.attendance(flag=flag)
-
-    # 如果错误码3开头，进行重新请求三次
-    if str(response['code'])[0] == '3':
-        for i in range(3):
-            time.sleep(5)
-            response = mydgut.attendance(flag=flag)
-            if response['code'] == 1:
-                break
-    return response
+        # 测试/签到/签退
+        response = mydgut.attendance(
+            flag=flag, workAssignmentId=workAssignmentId)
+    except:
+        response = xgxtt_sign(username, password, flag,
+                              workAssignmentId, count+1)
+    finally:
+        return response
 
 
 def utc_local(t: datetime.datetime):
     if isinstance(t, datetime.datetime):
         return t+datetime.timedelta(hours=8)
     return False
-
-
-def set_log(default_path: str = 'log.yaml', default_level=logging.INFO):
-    '''
-    读取日志配置
-    '''
-    path = default_path
-    if os.path.exists(path):
-        with open(path, 'r', encoding='utf-8') as f:
-            config = yaml.load(f, Loader=yaml.FullLoader)
-            logging.config.dictConfig(config)
-    else:
-        logging.basicConfig(level=default_level)
 
 
 @click.command()
@@ -125,7 +109,7 @@ def run(username, password):
 
         # 3、获取当前时间，并判断是否为休息日
         run_time = utc_local(datetime.datetime.utcnow())
-        logger.debug(f"程序启动 >> {run_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"程序启动 >> {run_time.strftime('%Y-%m-%d %H:%M:%S')}")
         if calendar.is_holiday(run_time) and not demand['holiday_attendance'] and not special:
             raise Exception("今天是休息日")
 
@@ -141,13 +125,13 @@ def run(username, password):
             start_time = item[0]
             end_time = item[1]
 
-            logging.info("-"*20)
-            logger.info(
+            print("-"*20)
+            print(
                 f"正在进行{start_time.strftime('%H:%M')}至{end_time.strftime('%H:%M')}的考勤...")
 
             # 如果已经错过该考勤时间，则进入下一个考勤时间
             if utc_local(datetime.datetime.utcnow()).time() > start_time:
-                logger.info("已经错过了该考勤时间")
+                print("已经错过了该考勤时间")
                 continue
 
             # 如果考勤无法正常签退，则不进行考勤（程序只能运行6小时）
@@ -157,15 +141,19 @@ def run(username, password):
             while True:
                 if utc_local(datetime.datetime.utcnow()).time() >= start_time:
                     break
-                time.sleep(5)
+                time.sleep(10)
 
             # 6、签到
             response = xgxtt_sign(username, password, 1,
                                   workAssignmentId=demand['workAssignmentId'])
-            response['info']['time'] = utc_local(response['info']['time'])
-            logger.info(response)
-            if response['code'] != 1:
-                raise Exception("启动自动考勤失败！")
+            if response.get('info'):
+                if response.get('info').get('time'):
+                    response['info']['time'] = utc_local(
+                        response['info']['time'])
+            print(response)
+            if response['code'] == 0:
+                u = dgutXgxt(username, password)
+                print(u.attendance(1, demand['workAssignmentId']))
 
             while True:
                 if utc_local(datetime.datetime.utcnow()).time() >= end_time:
@@ -175,29 +163,31 @@ def run(username, password):
             # 7、签退
             response = xgxtt_sign(username, password, 2,
                                   workAssignmentId=demand['workAssignmentId'])
-            response['info']['time'] = utc_local(response['info']['time'])
-            logger.info(response)
-            if response['code'] != 1:
-                raise Exception("签到成功了但签退失败！")
+            if response['code'] == 0:
+                u = dgutXgxt(username, password)
+                print(u.attendance(2, demand['workAssignmentId']))
+            if response.get('info'):
+                if response.get('info').get('time'):
+                    response['info']['time'] = utc_local(
+                        response['info']['time'])
+            print(response)
 
     except IndexError:
-        logger.warning("请完整输入账号和密码", exc_info=True)
+        print("请完整输入账号和密码")
     except requests.exceptions.ConnectTimeout:
-        logger.error('服务器连接超时', exc_info=True)
+        print('服务器连接超时')
     except requests.exceptions.ReadTimeout:
-        logger.error('在指定时间内未响应', exc_info=True)
+        print('在指定时间内未响应')
     except requests.exceptions.ConnectionError:
-        logger.error('与服务器连接失败，可能是找不到服务器或网络环境差', exc_info=True)
+        print('与服务器连接失败，可能是找不到服务器或网络环境差')
     except Exception as e:
         if not e:
-            logger.error("程序结束：可能是未知的错误", exc_info=True)
+            print("程序结束：可能是未知的错误")
         else:
-            logger.warning(e, exc_info=True)
+            print(e)
     except:
-        logger.error("程序出现未知错误", exc_info=True)
+        print("程序出现未知错误")
 
 
 if __name__ == '__main__':
-    set_log()
-    logger = logging.getLogger('main')
     run()

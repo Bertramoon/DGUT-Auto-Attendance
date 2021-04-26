@@ -1,4 +1,4 @@
-dgut-requests==0.0.6
+dgut-requests==0.1.0
 chinesecalendar
 click==7.1.2
-pyYAML
+pyYAML==5.4.1

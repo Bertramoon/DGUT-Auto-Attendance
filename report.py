@@ -20,7 +20,12 @@ def try_report(u: dgutIllness, count: int = 0):
 @click.option('-P', '--password', required=True, help="中央认证账号密码", type=str)
 def main(username, password):
     u = dgutIllness(username, password)
-    response = try_report(u, 0)
+    count = 1
+    while True:
+        response = try_report(u, 0)
+        if response['code'] in [200, 400] or count > 100:
+            break
+        count += 1
     print(response)
 
 

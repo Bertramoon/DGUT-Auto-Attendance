@@ -26,6 +26,7 @@ def main(username, password):
         if response['code'] in [200, 400] or count > 100:
             break
         count += 1
+        time.sleep(10)
     print(response)
 
 

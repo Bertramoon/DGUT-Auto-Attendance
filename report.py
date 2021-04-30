@@ -23,7 +23,7 @@ def main(username, password):
     count = 1
     while True:
         response = try_report(u, 0)
-        if response['code'] in [200, 400] or count > 100:
+        if response['code'] == 400 or not response['messsage'] == '提交异常' or count > 100:
             break
         count += 1
         time.sleep(10)

@@ -23,10 +23,12 @@ def main(username, password):
     count = 1
     while True:
         response = try_report(u, 0)
-        if response['code'] == 400 or not response.get('info') == 0 or count > 100:
+        if response.get('code') == 400 or (response.get('code') == 200 and response.get('info') == 0) or count > 100:
             break
         count += 1
         time.sleep(10)
+    if count > 100:
+        print("打卡失败")
     print(response)
 
 

@@ -1,4 +1,5 @@
-dgut-requests==0.1.0
+dgut-requests
 chinesecalendar
 click==7.1.2
-pyYAML==5.4.1
+schedule
+retry

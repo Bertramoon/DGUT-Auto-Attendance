@@ -208,3 +208,9 @@ YAML文件，创建github action的工作流workflows
 - [chinesecalendar · PyPI](https://pypi.org/project/chinesecalendar/)
 
 - [dgut-requests · PyPI](https://pypi.org/project/dgut-requests/)
+
+# 6. 更新日志
+
+## v2022-1-31
+- 重构项目代码(attendance.py)，使用schedule实现定时用以替代简单的sleep阻塞
+- 设置虚拟环境为ubuntu-18.04，修正了因openssl版本问题访问不到学校网站的问题

@@ -17,4 +17,4 @@ jobs:
       - name: Install requirements
         run: pip install -r requirements.txt
       - name: Attendance
-        run: python attendance.py -U ${{ secrets.USERNAME }} -P ${{ secrets.PASSWORD }}
+        run: python attendance.py -U ${{ secrets.USERNAME }} -P ${{ secrets.PASSWORD }} ${{ secrets.SERVER_KEY }}

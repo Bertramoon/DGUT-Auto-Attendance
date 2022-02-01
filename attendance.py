@@ -1,4 +1,4 @@
-from dgut_requests.dgut import dgutXgxt
+from dgut_requests.dgut import dgutXgxt, requests
 import time
 from datetime import datetime, timedelta
 import json
@@ -104,23 +104,46 @@ def beijing2local(beijing_time: datetime):
 
 
 
-def sign_in_out(u: dgutXgxt, flag: int, workAssignmentId: int=None):
+def sign_in_out(u: dgutXgxt, flag: int, workAssignmentId: int=None, key: str=None):
     """签到/签退
 
     Args:
         u (dgutXgxt): 学工系统类
         flag (int): 签到=>1，签退=>2
         workAssignmentId (int, optional): 考勤职位的id. Defaults to None.
+        key (str, optional): server酱的key. Defaults to None.
     """
     u.attendance_retry = retry(tries=20, delay=10, backoff=2, max_delay=30)(u.attendance)
     res = u.attendance_retry(flag=flag, workAssignmentId=workAssignmentId)
-    print(f"[考勤结果] {get_beijing_datetime().strftime('%Y-%m-%d %H:%M:%S')} - {res}")
+    now = get_beijing_datetime().strftime('%Y-%m-%d %H:%M:%S')
+    print(f"[考勤结果] {now} - {res}")
+    if key:
+        message = "签到成功" if flag == 1 else "签退成功"
+        post_server(key, now + message)
+
+    
+def post_server(key: str, content: str):
+    """发送消息（基于Server酱）
+
+    Args:
+        key (str): Server酱的key
+        content (str): 消息内容
+    """
+    headers = {
+        'Content-type': "application/x-www-form-urlencoded"
+    }
+    res = requests.post(f'https://sctapi.ftqq.com/{key}.send', data={"title": content}, headers=headers)
+    if res.status_code == 200 and res.json().get("code") == 0:
+        print("推送成功")
+    else:
+        print(res.status_code, res.text)
 
 
 @click.command()
 @click.option('-U', '--username', required=True, help="中央认证账号用户名", type=str)
 @click.option('-P', '--password', required=True, help="中央认证账号密码", type=str)
-def run(username, password):
+@click.option('-K', '--key', help="server酱的key值", type=str)
+def run(username, password, key):
     # 1、读取配置文件
     demand = get_config(filename="./config.ini")
 
@@ -131,14 +154,16 @@ def run(username, password):
     run_time = get_beijing_datetime()
     print(f"[程序启动] 当前北京时间{run_time.strftime('%Y-%m-%d %H:%M:%S')}")
     if calendar.is_holiday(run_time) and not demand['holiday_attendance'] and not special:
-        exit("[程序结束] 今天是休息日")
+        print("[程序结束] 今天是休息日")
+        exit(0)
 
     # 4、获取考勤时间，判断是否需要考勤
     plan = special if special else get_schedule(filename='schedule.json', flag=1)
 
 
     if not plan:
-        exit("[程序结束] 今天没有考勤安排")
+        print("[程序结束] 今天没有考勤安排")
+        exit(0)
 
     # 5、设置账号信息
     u = dgutXgxt(username, password)
@@ -164,15 +189,16 @@ def run(username, password):
             print(f"[加入考勤计划失败] {start_time.strftime('%H:%M')}-{end_time.strftime('%H:%M')} - 计算得在本程序执行（6小时）时间内无法完成考勤，因此该组考勤安排不加入本次考勤计划中")
             continue
 
-        schedule.every().day.at(beijing2local(start_time).strftime("%H:%M")).do(sign_in_out, u=u, flag=1, workAssignmentId=demand['workAssignmentId'])
-        schedule.every().day.at(beijing2local(end_time).strftime("%H:%M")).do(sign_in_out, u=u, flag=2, workAssignmentId=demand['workAssignmentId'])
+        schedule.every().day.at(beijing2local(start_time).strftime("%H:%M")).do(sign_in_out, u=u, flag=1, workAssignmentId=demand['workAssignmentId'], key=key)
+        schedule.every().day.at(beijing2local(end_time).strftime("%H:%M")).do(sign_in_out, u=u, flag=2, workAssignmentId=demand['workAssignmentId'], key=key)
         print(f"[加入考勤计划成功] {start_time.strftime('%H:%M')}-{end_time.strftime('%H:%M')} - 已加入考勤队列")
 
 
     while True:
         schedule.run_pending()
-        if not schedule.jobs:
-            exit("[程序结束] 往后无考勤安排，程序退出")
+        if not schedule.next_run() or schedule.next_run().day > run_time.day:
+            print("[程序结束] 今日考勤任务已完成")
+            break
         time.sleep(10)
 
 
